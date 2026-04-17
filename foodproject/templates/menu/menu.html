@@ -1,0 +1,9 @@
+<h1>Food Menu</h1>
+
+{% for food in foods %}
+<div>
+    <h2>{{ food.name }}</h2>
+    <p>{{ food.description }}</p>
+    <p>Price: ₹{{ food.price }}</p>
+</div>
+{% endfor %}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet">
+</head>
+<body>
+{% include "menu/navbar.html" %}
+<h1>My Orders</h1>
+
+    {% for order in orders %}
+    
+        <p>
+            <a href="{% url 'order_detail' order.id %}"> Order ID: {{ order.id }}</a>
+            -
+            Order ID: {{ order.id }} - 
+
+            Total: ₹{{ order.total_price }} - 
+            
+
+        {% if order.status == "Pending" %}
+            <span class="badge bg-warning text-dark">
+            Pending
+            </span>
+
+        {% elif order.status == "Preparing" %}
+            <span class="badge bg-info">
+            Preparing
+            </span>
+
+        {% elif order.status == "Out for Delivery" %}
+            <span class="badge bg-primary">
+            Out for Delivery
+            </span> 
+
+        {% elif order.status == "Delivered" %}
+            <span class="badge bg-success">
+            Delivered
+            </span>
+
+        {% elif order.status == "Cancelled" %}
+            <span class="badge bg-danger">
+            Cancelled
+            </span>
+
+        {% endif %}
+                
+            Payment: {{ order.payment_method }} - 
+            
+            Date: {{ order.created_at }}
+
+        </p>
+
+        <hr>
+
+    {% endfor %}
+
+<a href="{% url 'menu' %}">
+    Back to Menu
+</a>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
