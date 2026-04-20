@@ -165,102 +165,209 @@ No orders found
 
 <br>
 
-<h3>Top Selling Items</h3>
-
-<table class="table table-bordered">
-
-<thead>
-<tr>
-    <th>Food Item</th>
-    <th>Total Quantity Sold</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for item in top_items %}
-
-<tr>
-
-<td>
-{{ item.food__name }}
-</td>
-
-<td>
-{{ item.total_sold }}
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-<td colspan="2">
-No sales data available
-</td>
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-<br>
-
-<h3>Orders Per Day</h3>
-
-<canvas id="ordersChart" height="100"></canvas>
+<h2></h2>
+<h3 class="text-center">Revenue per Day</h3>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<div style="
+    width: 500px;
+    height: 300px;
+    margin: 40px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;">
+    <canvas id="revenueChart"></canvas>
+</div>
+
 <script>
 
-const dates = JSON.parse('{{ dates|escapejs }}');
+const revenueDates = {{ revenue_dates|safe }};
+const revenueTotals = {{ revenue_totals|safe }};
 
-const orderCounts =
-    JSON.parse('{{ order_counts|escapejs }}')
-    .map(Number);
-
-console.log("Dates:", dates);
-console.log("Counts:", orderCounts);
+console.log("Revenue Dates:", revenueDates);
+console.log("Revenue Totals:", revenueTotals);
 
 const ctx = document
-    .getElementById("ordersChart")
+    .getElementById("revenueChart")
     .getContext("2d");
 
 new Chart(ctx, {
     type: "line",
-
     data: {
-        labels: dates,
-
+        labels: revenueDates,
         datasets: [{
-            label: "Orders Per Day",
-            data: orderCounts,
+            label: "Revenue per Day",
+            data: revenueTotals,
             borderWidth: 2,
-            tension: 0.3,
-            fill: false
+            tension: 0.3
         }]
     },
-
     options: {
         responsive: true,
+        maintainAspectRatio: false
+    }
+});
 
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    precision: 0
-                }
-            }
-        }
+</script>
+
+
+<h3 class="text-center">Top Selling Items</h3>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+
+        <div style="
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 40px;">
+
+            <table class="table table-bordered table-striped text-center">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Food Item</th>
+                        <th>Total Quantity Sold</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for item in top_items %}
+
+                    <tr>
+                        <td>{{ item.food__name }}</td>
+                        <td>{{ item.total_sold }}</td>
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="2">
+                            No sales data available
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>
+
+<br>
+
+<h3 class="text-center">Orders Per Day</h3>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+
+        <div style="
+            height: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 40px;">
+
+            <canvas id="ordersChart"></canvas>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+const orderDates = {{ order_dates|safe }};
+const orderCounts = {{ order_counts|safe }};
+
+console.log("Order Dates:", orderDates);
+console.log("Order Counts:", orderCounts);
+
+const ctx1 = document
+    .getElementById("ordersChart")
+    .getContext("2d");
+
+new Chart(ctx1, {
+    type: "bar",
+    data: {
+        labels: orderDates,
+        datasets: [{
+            label: "Orders per Day",
+            data: orderCounts,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
     }
 });
 
 </script>
 <br>
 
+<h3 class="text-center">Order Status Distribution</h3>
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+
+        <div style="
+            height: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 40px;">
+
+            <canvas id="statusChart"></canvas>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+const statusLabels = {{ status_labels|safe }};
+const statusCounts = {{ status_counts|safe }};
+
+const ctx2 = document
+    .getElementById("statusChart")
+    .getContext("2d");
+
+new Chart(ctx2, {
+    type: "pie",
+    data: {
+        labels: statusLabels,
+        datasets: [{
+            data: statusCounts
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+</script>
+<br>
+<br>
+
+
+<br>
+<br>
+
+<a href="{% url 'export_orders_csv' %}" class="btn btn-success" >
+    <h2 class="text-center">Export Orders to CSV</h2>
+</a>
+
+<br>
+<br>
 
 <a href="/admin/">
     Go to Admin Panel

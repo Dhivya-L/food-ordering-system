@@ -23,7 +23,11 @@ from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 import json
-
+import csv
+from django.http import HttpResponse
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from django.http import HttpResponse
 
 
 
@@ -483,9 +487,6 @@ def admin_dashboard(request):
         context
     )
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from django.http import HttpResponse
 
 def download_invoice(request, order_id):
 
@@ -620,42 +621,96 @@ def admin_dashboard(request):
         .order_by("-total_sold")[:5]
     )
 
-    # Orders per day chart data
+    
+
+
+    #orders per day
 
     orders_per_day = (
         Order.objects
         .annotate(order_date=TruncDate("created_at"))
         .values("order_date")
-        .annotate(total_orders=Count("id"))
+        .annotate(count=Count("id"))
         .order_by("order_date")
     )
 
-    dates = []
+    order_dates = []
     order_counts = []
 
     for item in orders_per_day:
-        dates.append(
+        order_dates.append(
             item["order_date"].strftime("%Y-%m-%d")
         )
         order_counts.append(
-            int(item["total_orders"])
+            item["count"]
         )
 
-    print("DATES:", dates)
-    print("COUNTS:", order_counts)
+    print("ORDER DATES:", order_dates)
+    print("ORDER COUNTS:", order_counts)
+    # Revenue per day chart data
+
+    revenue_per_day = (
+        Order.objects
+        .annotate(revenue_date=TruncDate("created_at"))
+        .values("revenue_date")
+        .annotate(total_revenue=Sum("total_price"))
+        .order_by("revenue_date")
+    )
+
+    revenue_dates = []
+    revenue_totals = []
+
+    for item in revenue_per_day:
+        revenue_dates.append(
+            item["revenue_date"].strftime("%Y-%m-%d")
+        )
+        revenue_totals.append(
+            float(item["total_revenue"])
+        )
+
+    print("REVENUE DATES:", revenue_dates)
+    print("REVENUE TOTALS:", revenue_totals)
+
+   
+
+# Order Status Distribution
+
+    status_data = (
+        Order.objects
+        .values("status")
+        .annotate(count=Count("id"))
+    )
+
+    status_labels = []
+    status_counts = []
+
+    for item in status_data:
+        status_labels.append(item["status"])
+        status_counts.append(item["count"])
+
+    print("STATUS LABELS:", status_labels)
+    print("STATUS COUNTS:", status_counts)
 
     context = {
-        "recent_orders": recent_orders,
-        "today_orders": today_orders,
-        "total_orders": total_orders,
-        "total_revenue": total_revenue,
-        "pending_orders": pending_orders,
-        "completed_orders": completed_orders,
-        "top_items": top_items,
 
-    # FIX HERE
-        "dates": json.dumps(dates),
-        "order_counts": json.dumps(order_counts),
+    "recent_orders": recent_orders,
+    "today_orders": today_orders,
+    "total_orders": total_orders,
+    "total_revenue": total_revenue,
+    "pending_orders": pending_orders,
+    "completed_orders": completed_orders,
+    "top_items": top_items,
+
+    "order_dates": json.dumps(order_dates),
+    "order_counts": json.dumps(order_counts),
+
+
+    # ADD THESE
+
+    "revenue_dates": json.dumps(revenue_dates),
+    "revenue_totals": json.dumps(revenue_totals),
+    "status_labels": json.dumps(status_labels),
+    "status_counts": json.dumps(status_counts),
     }
     return render(
         request,
@@ -664,4 +719,36 @@ def admin_dashboard(request):
     )
 
 
+def export_orders_csv(request):
 
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders.csv"'
+
+    writer = csv.writer(response)
+
+    # Header
+    writer.writerow([
+        'Order ID',
+        'User',
+        'Total',
+        'Order Date'
+    ])
+
+    orders = Order.objects.all()
+
+    for order in orders:
+
+        # Get total field safely
+        total_value = getattr(order, 'total', None) \
+                   or getattr(order, 'total_price', None) \
+                   or getattr(order, 'amount', None) \
+                   or getattr(order, 'price', None)
+
+        writer.writerow([
+            order.id,
+            order.user.username,
+            total_value,
+            order.created_at
+        ])
+
+    return response

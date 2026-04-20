@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
 
     path('', views.menu_list, name='menu'),
@@ -44,8 +45,13 @@ urlpatterns = [
     path("order/<int:order_id>/",views.order_detail,name="order_detail"),
 
     path("admin-dashboard/",views.admin_dashboard,name="admin_dashboard"),
-    
+
+    path('export-orders/',views.export_orders_csv,name='export_orders_csv'),
+
 ]
+
+
+
 
 
 
